@@ -3,8 +3,8 @@ import json
 from decouple import config
 
 cont_branco = False
-token = ''
-chat_id = ''
+token = config('TOKEN')
+chat_id = config('CHAT_ID')
 id_antigo = 0
 cont_green, cont_loss = 0, 0
 
@@ -181,13 +181,15 @@ while True:
                 ✅ Estrategia BÁSICA [ Entrar no 🔴 ]
                 '''
 
-
+        
         #verificar ultima rodada para green ou loss
-        def win_loss(padrao):
+        def win_loss(padrao, green_cont, loss_cont):
 
             if padrao[0:4] == ['P','V', 'V', 'V']:
-                win = '''
+                green_cont += 1
+                win = f'''
                 ✅ GREEN no ⚫ ✅
+                {green_cont} x {loss_cont}
                 '''
                 #envia win
                 url = f'https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={win}'
@@ -195,8 +197,10 @@ while True:
                 return
             
             if padrao[0:4] == ['V','P', 'P', 'P']:
-                win = '''
+                green_cont += 1
+                win = f'''
                 ✅ GREEN no 🔴 ✅
+                {cont_green} x {cont_loss}
                 '''
                 #envia win
                 url = f'https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={win}'
@@ -204,8 +208,10 @@ while True:
                 return
 
             if padrao[0:4] == ['V','V', 'V', 'V'] or padrao[0:4] == ['B','V', 'V', 'V']:
-                loss = '''
+                loss_cont += 1
+                loss = f'''
                 ❌ LOSS no ⚫ ❌
+                {cont_green} x {cont_loss}
                 '''
                 #envia loss
                 url = f'https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={loss}'
@@ -213,18 +219,22 @@ while True:
                 return
             
             if padrao[0:4] == ['P','P', 'P', 'P'] or padrao[0:4] == ['B','P', 'P', 'P']:
-                loss = '''
+                loss_cont += 1
+                loss = f'''
                 ❌ LOSS no 🔴 ❌
+                {cont_green} x {cont_loss}
                 '''
                 #envia loss
                 url = f'https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={loss}'
                 requests.get(url)
                 return
+            return cont_green, cont_loss
 
         #api para enviar mensagem no telegram
         
         mensagem = verificarsaida(finalcor)
-        win_loss(finalcor)
+        placar = win_loss(finalcor, cont_green, cont_loss)
+        
 
         if mensagem != None:
             url = f'https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={mensagem}'
